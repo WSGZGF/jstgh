@@ -77,7 +77,7 @@ function detectDevice() {
   if (/iPhone/i.test(ua)) return { brand: 'iPhone', model: '', raw: 'iPhone' };
   if (/iPad/i.test(ua)) return { brand: 'iPad', model: '', raw: 'iPad' };
   // Android: 先识别品牌
-  if (/Huawei|HONOR/i.test(ua)) brand = '华为';
+  if (/Huawei|HONOR/i.test(ua)) brand = /HONOR/i.test(ua) ? '荣耀' : '华为';
   else if (/Xiaomi|MI\s/i.test(ua)) brand = '小米';
   else if (/Redmi/i.test(ua)) brand = '红米';
   else if (/OPPO/i.test(ua)) brand = 'OPPO';
@@ -90,7 +90,7 @@ function detectDevice() {
   // 例: "Android 15; HONOR DNN-AN00)" 或 "Android 13; Mi 10 Build/..."
   // 提取 - 取出 Android X; 后面的第一个 token，可能是 "HONOR DNN-AN00" 或 "Mi 10"
   let androidCode = '';
-  const m1 = ua.match(/Android[\s\S]*?;\s*([^)\s;]+(?:\s[^)\s;]+)?)\s*[)\s;]/);
+  const m1 = ua.match(/Android[\s\S]*?;\s*([^)\s;]+)/);
   if (m1) {
     let raw = m1[1].trim();
     // 去掉 HONOR / HUAWEI / Xiaomi / Redmi / vivo / OPPO 等品牌前缀
