@@ -117,22 +117,67 @@ function escapeHTML(s) {
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// 归一化：去空格、全/半角转小写、去掉常见标点差异
+function norm(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[\s\u3000]+/g, '')   // 去半角+全角空格
+    .replace(/[＋]/g, '+')
+    .replace(/[×x✕]/g, 'x')
+    .replace(/[()（）\[\]【】]/g, ''); // 去中英括号
+}
+
 function highlight(text, q) {
   if (!q) return escapeHTML(text);
-  const idx = text.toLowerCase().indexOf(q.toLowerCase());
-  if (idx < 0) return escapeHTML(text);
-  return escapeHTML(text.slice(0, idx)) + '<mark>' + escapeHTML(text.slice(idx, idx+q.length)) + '</mark>' + escapeHTML(text.slice(idx+q.length));
+  // 严格匹配优先
+  let idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx >= 0) {
+    return escapeHTML(text.slice(0, idx)) + '<mark>' + escapeHTML(text.slice(idx, idx + q.length)) + '</mark>' + escapeHTML(text.slice(idx + q.length));
+  }
+  // 归一化匹配：找到归一化文本中包含归一化 q 的位置，映射回原文
+  const tn = norm(text), qn = norm(q);
+  const ni = tn.indexOf(qn);
+  if (ni < 0) return escapeHTML(text);
+  // 把归一化位置映射回原文：跳过的字符数 = 归一化长度差
+  let origStart = 0, normPos = 0;
+  while (normPos < ni && origStart < text.length) {
+    if (norm(text[origStart]) === '') { origStart++; continue; }
+    normPos++;
+    origStart++;
+  }
+  let origEnd = origStart, endNormPos = normPos;
+  while (endNormPos < ni + qn.length && origEnd < text.length) {
+    if (norm(text[origEnd]) === '') { origEnd++; continue; }
+    endNormPos++;
+    origEnd++;
+  }
+  return escapeHTML(text.slice(0, origStart)) + '<mark>' + escapeHTML(text.slice(origStart, origEnd)) + '</mark>' + escapeHTML(text.slice(origEnd));
 }
 
 function matchEntry(entry, q) {
   if (!q) return { hit: true, where: '' };
   const ql = q.toLowerCase();
+  const qn = norm(q);
+  // 优先严格匹配（保持原体验）
   if (entry.code.toLowerCase().includes(ql)) return { hit: true, where: 'code:' + entry.code };
-  if ((entry.sub||'').toLowerCase().includes(ql)) return { hit: true, where: 'sub:' + entry.sub };
+  if ((entry.sub || '').toLowerCase().includes(ql)) return { hit: true, where: 'sub:' + entry.sub };
   for (const b of entry.brands) {
     if (b.brand.toLowerCase().includes(ql)) return { hit: true, where: 'brand:' + b.brand };
     for (const m of b.models) {
       if (m.toLowerCase().includes(ql)) return { hit: true, where: 'model:' + m, brand: b.brand };
+    }
+  }
+  // 归一化匹配（解决"荣耀 400" vs "荣耀400" 等空格/全半角差异）
+  if (norm(entry.code).includes(qn)) return { hit: true, where: 'code(norm):' + entry.code };
+  if (norm(entry.sub || '').includes(qn)) return { hit: true, where: 'sub(norm):' + entry.sub };
+  for (const b of entry.brands) {
+    if (norm(b.brand).includes(qn)) return { hit: true, where: 'brand(norm):' + b.brand };
+    for (const m of b.models) {
+      if (norm(m).includes(qn)) return { hit: true, where: 'model(norm):' + m, brand: b.brand };
+    }
+    // 兼容：用户输入 "荣耀400"，GX40 brand 写成 "荣耀400/荣耀400pro" 的情况
+    if (b.models.length === 0 && norm(b.brand).includes(qn)) {
+      return { hit: true, where: 'brandOnly(norm):' + b.brand };
     }
   }
   return { hit: false };
@@ -205,7 +250,8 @@ function init() {
     } else {
       detectEl.innerHTML = `检测到您的设备：<b>${escapeHTML(det.model)}</b> · 已自动填入搜索`;
     }
-    document.getElementById('q').value = det.model;
+    // 展示原文，搜索用归一化后的（去空格/括号等）
+    document.getElementById('q').value = norm(det.model);
   } else if (det.brand) {
     detectEl.innerHTML = `检测到品牌：<b>${escapeHTML(det.brand)}</b> · 点击下方按钮或输入完整型号`;
   } else {
