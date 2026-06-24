@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>钢化膜型号查询</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;background:#f4f5f7;color:#1a1a1a;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+  .header{background:linear-gradient(135deg,#3a7bd5,#2c5282);color:#fff;padding:18px 16px 14px}
+  .header h1{font-size:20px;font-weight:600}
+  .header .sub{font-size:12px;opacity:.85;margin-top:2px}
+  .detect{background:rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13px;line-height:1.5}
+  .detect b{color:#ffd54f}
+  .search{padding:12px 16px;background:#fff;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+  .search input{width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;background:#f8f9fa;transition:.15s}
+  .search input:focus{border-color:#3a7bd5;background:#fff}
+  .quick-pick{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 8px;background:#fff}
+  .quick-pick button{padding:6px 12px;background:#eef2f7;border:1px solid #d6dee8;border-radius:16px;font-size:12px;color:#3a7bd5;cursor:pointer}
+  .quick-pick button:active{background:#3a7bd5;color:#fff}
+  .count{padding:10px 16px 6px;font-size:12px;color:#888}
+  .list{padding:0 12px}
+  .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);cursor:pointer;transition:transform .1s}
+  .card:active{transform:scale(.98)}
+  .card-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .code{font-family:Menlo,Consolas,monospace;font-size:14px;font-weight:700;color:#3a7bd5;background:#eef4ff;padding:2px 8px;border-radius:5px;letter-spacing:.5px}
+  .sub{font-size:14px;color:#333;font-weight:600}
+  .type{font-size:11px;color:#888;background:#f0f0f0;padding:2px 6px;border-radius:4px}
+  .card-brands{margin-top:8px;font-size:12px;color:#666;line-height:1.6}
+  .brand-tag{display:inline-block;background:#f4f6fa;border-radius:4px;padding:2px 6px;margin:2px 4px 2px 0;font-size:11px;color:#3a7bd5}
+  .brand-tag.match{background:#fff3cd;color:#d4880d;font-weight:600}
+  .detail{background:#fff;border-radius:12px;padding:16px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .detail h2{font-size:18px;margin-bottom:4px}
+  .detail .code-big{font-family:Menlo,Consolas,monospace;font-size:22px;color:#3a7bd5;font-weight:700;letter-spacing:1px;margin:6px 0}
+  .detail .info{font-size:12px;color:#888;margin-bottom:12px}
+  .brand-group{margin-top:14px}
+  .brand-name{font-size:14px;font-weight:600;color:#333;border-left:3px solid #3a7bd5;padding-left:8px;margin-bottom:8px}
+  .model-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .model-chip{background:#f4f6fa;border-radius:14px;padding:4px 10px;font-size:12px;color:#333}
+  .model-chip.match{background:#fff3cd;color:#d4880d;font-weight:600}
+  .empty{text-align:center;padding:40px 20px;color:#aaa;font-size:14px}
+  .empty-icon{font-size:40px;margin-bottom:8px;opacity:.5}
+  .close-detail{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.05);border:none;font-size:18px;color:#666;cursor:pointer}
+  .footer{text-align:center;padding:20px;font-size:11px;color:#bbb}
+  mark{background:#fff3cd;color:#d4880d;padding:0 2px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📱 钢化膜型号查询</h1>
+  <div class="sub">小熊系列高清膜 · 共 84 款</div>
+  <div class="detect" id="detect">正在识别您的设备…</div>
+</div>
+<div class="search">
+  <input type="text" id="q" placeholder="输入机型关键字（iPhone 15 / 华为Mate60 / 红米 K50）" autocomplete="off" autocorrect="off" autocapitalize="off">
+</div>
+<div class="quick-pick" id="quickPick"></div>
+<div class="count" id="count"></div>
+<div class="list" id="list"></div>
+<div class="footer">小熊系列高清膜 · 店内查询工具</div>
+
+<script>
+const FILMS = [{"code": "GX01", "name": "小熊系列", "type": "高清膜", "sub": "A11X", "brands": [{"brand": "华为", "models": ["畅玩 40", "畅享 50 Z", "优畅享 50E", "NZONE S7", "畅享 30E", "麦芒 11 SE", "荣耀 Play 5T", "畅玩 30E", "畅玩 20", "荣耀 Play 6C", "畅玩 30M", "畅享 50z", "畅玩 30a", "畅享 20", "红米 9A", "红米 12", "红米 10X Pro", "红米 10X", "红米 9", "麦芒 A20", "荣耀 play20", "小米 10Lite", "红米 Note 11R", "酷派 cool30", "酷比锋尚 40"]}, {"brand": "OPPO", "models": ["OPPO A1 活力版", "真我 10S 5G", "A8", "A11", "A11X", "A56", "A55S", "A55", "A35", "真我 V3", "A57", "真我 V11s", "真我 V11", "A58", "A58m", "A1x", "真我 V23", "真我 V20", "真我 V10", "A56s", "A57 5G", "A97", "真我 10s", "真我 C35", "真我 Q5i", "真我 C20", "真我 NARZO 30", "真我 NARZO20A", "A53S(5G)", "A77(5G)", "iQOO Z7i", "M 10", "NZONE S7(5G)", "ONEPlus", "REAlMEV1"]}, {"brand": "vivo", "models": ["VIVO Y77E", "Y73t", "iQOO Z6 X", "VIVO Y74S", "VIVO Y72T", "Y53T", "Y55S", "iQOO U5X", "Y35", "Y16", "iQOO U5E", "iQOO U5X", "Z6X", "Y10", "Y33S", "T1X", "iQOO U5", "Y32", "Y55s", "Y26", "Y11", "vivc Y12A", "Y15A", "Y20", "Y20i", "Y33", "Y33E", "Y33T", "vivo Y35+", "vivo Y35m", "vivo Y35m+", "Y54s", "Y55", "Y72", "Y76"]}]}, {"code": "GX02", "name": "小熊系列", "type": "高清膜", "sub": "A52", "brands": [{"brand": "OPPO", "models": ["A52", "A53"]}, {"brand": "5G/真我", "models": ["V5", "A72", "A92", "真我 Q3i", "真我 V13", "真我 V15", "A93", "K9X", "A11S", "A93S", "真我 X70PRO", "一加 9r", "一加 9t", "一加 9", "一加 8T", "A95", "NZONE S7Pro", "Reno2", "RenoACE2", "Reno2F", "Reno7Pro"]}, {"brand": "VIVO", "models": ["iQoo5"]}, {"brand": "华为", "models": ["荣耀 30", "NOVA7"]}, {"brand": "小米", "models": ["红米 NOTE 10(5G)", "红米 NOTE 10S", "红米 NOTE 10T"]}]}, {"code": "GX03", "name": "小熊系列", "type": "高清膜", "sub": "X23", "brands": [{"brand": "华为", "models": ["Nova 5 Pro", "Nova 5", "Nova 10 Se"]}, {"brand": "vivo", "models": ["X23幻彩", "X23", "iQOO Pro", "X21S", "iQOO1"]}, {"brand": "小米", "models": ["小米 CC9", "小米 9", "红米 Note 7", "红米 7", "小米 9Pro"]}, {"brand": "OPPO", "models": ["真我 V11"]}]}, {"code": "GX04", "name": "小熊系列", "type": "高清膜", "sub": "X50", "brands": [{"brand": "OPPO", "models": ["Reno 7 Pro", "真我 GT Neo 5"]}, {"brand": "vivo", "models": ["X60", "iQOO Z5X0", "iQOO 8", "X70TX70", "X60T"]}, {"brand": "小米", "models": ["11 Lite"]}]}, {"code": "GX05", "name": "小熊系列", "type": "高清膜", "sub": "荣耀X20", "brands": [{"brand": "华为", "models": ["荣耀X10", "畅享50plus", "荣耀X20", "畅享20plus", "华为nova10se", "荣耀 80 Pro 面", "荣耀Play5活力版", "荣耀Play7T i ro", "荣耀 X30i", "荣耀 X40i", "荣耀 X50i荣耀 Play 6T Pro"]}, {"brand": "OPPO", "models": ["真我GT NEC 3", "真我GT NEO5", "RENO8PRO+", "一加ACE", "RENO8 Pro", "一加 Ace Pro", "真我10Pro", "真我GTNeo5", "真我Q5S", "真我Q5", "真我Q5Pro", "真我9SI", "A76", "iQOO7", "iQOO Neo5活力版", "K10 Pro", "K9S", "nzone50i Pro"]}, {"brand": "vivo", "models": ["IQOO7", "IQOO NEO6 SE", "IQOO NEO6", "IQOO NEO5S", "IQOO NEO5", "S15"]}, {"brand": "小米", "models": ["红米NOTE11EPRO", "红米NOTE11PRO", "红米NOTE11", "红米NOTE10 PRO", "红米note12pro+", "红米note12pro", "红米NOTE11T", "黑鲨4", "红米K50", "红米K60", "红米K60E", "红米K60Pro", "红米NOTE11Pro+", "红米 Note 11T Pro+", "NOTE 2Turbo", "红米 Note 12T Pro", "红米K40游戏增强版", "红米K40Gaing", "红米K40Pro", "红米K40S", "红米K50U tra", "小米黑鲨·SGundam", "黑鲨鱼4S", "小米黑鲨鱼4SPro", "红米 K50 Pro", "小米Redmi K60 至尊版", "Note 3(5G)"]}]}, {"code": "GX06", "name": "小熊系列", "type": "高清膜", "sub": "荣耀V30", "brands": [{"brand": "华为", "models": ["NOVA6", "荣耀V30", "畅享30", "荣耀40青春", "荣耀PLAY4 PRO"]}]}, {"code": "GX07", "name": "小熊系列", "type": "高清膜", "sub": "IQOO", "brands": [{"brand": "Z5", "models": []}, {"brand": "OPPO", "models": ["K7X"]}, {"brand": "OPPO", "models": ["真我GTNEO5"]}, {"brand": "华为", "models": ["畅享20SE"]}, {"brand": "vivo", "models": ["iQOO Z5", "VIVO T1", "iQOO Nec5 SE"]}, {"brand": "小米", "models": ["红米 Note 11 Pro", "红米 Note 9 Pro", "红米K30i", "小米11", "红米 Note 11 Pro+", "红米 K30 Pro 至尊版", "K3CS"]}]}, {"code": "GX08", "name": "小熊系列", "type": "高清膜", "sub": "S1", "brands": [{"brand": "/VIVO", "models": ["Y51s", "畅享10Plus", "红米10X4G", "红米Note95G", "红米Note9T", "华为Y9s", "荣耀9X", "荣耀9XPro", "真我大师版", "真我X", "IQOO U1", "NEAS", "OPPO K3", "OPPO Reno10倍变焦版", "OPPO Reno【6.6】", "VIVO NEX", "VIVO S1", "VIVO V15", "VIVO Y50t", "VIVO Y70s 5G", "VIVO Y70t 5G", "VIVO Z5x", "S1", "Y50"]}]}, {"code": "GX09", "name": "小熊系列", "type": "高清膜", "sub": "A92S", "brands": [{"brand": "/OPPO", "models": ["A92s", "红米Note11TPro", "红米Note11TPro+", "红米Note12TPro", "加Ace电竞版", "一加Ace竞速版", "真我X50t", "真我9i", "真我Q3s", "真我Q3T", "真我Q5", "真我Q5狂欢版", "真我V25", "真我X50", "真我X50m", "iQOO Neo3", "OPPO Reno 4Z", "IQOO Neo5活力版", "iQoo Z1", "iQOO Z1x", "OPPO A11S", "OPPO A32", "OPPO K10", "OPPO K10活力版", "OPPO K10x"]}]}, {"code": "GX10", "name": "小熊系列", "type": "高清膜", "sub": "A91", "brands": [{"brand": "OPPO", "models": ["A91", "畅享20Pro", "畅享20EPro", "畅享Z", "荣耀30Lite", "OPPO K7", "OPPO Reno 3", "VIVO G1", "VIVO S10e", "VIVO S6", "VIVO S7e", "VIVO S7e活力版", "VIVO V21E", "VIVO X50e台湾", "VIVO Y70", "VIVO Y71T", "VIVO Y73s"]}]}, {"code": "GX11", "name": "小熊系列", "type": "高清膜", "sub": "RENO4", "brands": [{"brand": "/OPPO", "models": ["Reno 4", "OPPO Reno 4 SE", "魅族20", "真我11", "真我大师版", "真我Gtmaster]直屏款", "真我V15", "真我X7", "OPPO A74 4G", "OPPO A95", "OPPO A96", "OPPO F19 Pro", "OPPO F19 Pro+5G", "OPPO K9", "OPPO Reno 5 F", "OPPO Reno 5 Lite", "OPPO Reno 7 SE", "OPPO Reno 8", "OPPO Reno 8Z"]}]}, {"code": "GX12", "name": "小熊系列", "type": "高清膜", "sub": "RENO6", "brands": [{"brand": "OPPO", "models": ["RENO7", "RENO6", "RENO5K", "RENO5", "OPPO Reno 6", "OPPO Reno 6Z", "真我8", "真我GT大师版", "真我GT Neo", "真我GT(5G)", "真我Q2Pro", "真我Q3Pro", "真我Q3Pro狂欢版", "oPPO A94", "OPPO K9 Pro", "OPPO Reno 5", "OPPO Reno 5 K", "OPPO Reno 5 Z", "OPPO Reno 7", "OPPO Reno 7Z 5G", "真我GT Neo2T", "真我GT Neo闪速"]}]}, {"code": "GX13", "name": "小熊系列", "type": "高清膜", "sub": "R17", "brands": [{"brand": "OPPO", "models": ["真我X2", "Reno Z", "R19", "R17Pro", "R15X", "OPPO k1 R17"]}, {"brand": "OPPO", "models": ["A3", "R15", "F7", "真我 C1", "真我2"]}]}, {"code": "GX14", "name": "小熊系列", "type": "高清膜", "sub": "X21", "brands": [{"brand": "/VIVO", "models": ["X21", "VIVO X21A", "VIVO X21i", "红米Note6", "小米8Lite", "—加6", "OPPO A3", "OPPO A3s", "OPPO A5", "OPPO F7", "OPPO R15", "OPPO R15 Pro", "VIVO V9", "VIVO Y81", "VIVO Y81i", "VIVO Y81S", "VIVO Y83", "VIVO Y85", "VIVO Y89", "VIVO Z1", "VIVO Z1青春", "VIVO Z1 Lite", "VIVO Z1i", "VIVO Z3X"]}]}, {"code": "GX15", "name": "小熊系列", "type": "高清膜", "sub": "S10", "brands": [{"brand": "vivoS12/vivoS10Ppro/vivoS10/vivoS9/vivoS7/vivo20pro/vivoS7/", "models": []}]}, {"code": "GX16", "name": "小熊系列", "type": "高清膜", "sub": "NOVA7i", "brands": [{"brand": "OPPO", "models": ["真我GT", "真我GT NEO", "真我GT NEO2T", "K9PR 真我Q3PRO", "真我X50PRO", "K9"]}, {"brand": "vivo", "models": ["IQOO3", "X30PRO", "X30", "SS"]}, {"brand": "华为", "models": ["MAGIC2"]}]}, {"code": "GX17", "name": "小熊系列", "type": "高清膜", "sub": "X27", "brands": [{"brand": "/VIVO", "models": ["X27", "红米K20", "红米K20Pro", "华为Nova4", "荣耀Magic2", "荣耀V20", "三星Galaxy A60", "三星Galaxy S21FE", "三星Galaxy S23FE", "小米9T", "小米9TPro", "小米MIX3", "OPPO Reno【6.4】", "VIVO NEX2前", "VIVO S1 Pro"]}]}, {"code": "GX18", "name": "小熊系列", "type": "高清膜", "sub": "荣耀X20SE", "brands": [{"brand": "华为", "models": ["NOVA10 Z", "D20麦芒10", "NOVA8SE活力版", "荣耀X20SE", "荣耀 30S"]}, {"brand": "vivo", "models": ["NZONE S7PRO", "真我X7 Pro"]}, {"brand": "小米", "models": ["红米NOTE10T", "红米NOTE11 SE", "nova10z", "畅享50Plus", "华为Nova8i", "华为nova9z", "麦芒10", "荣耀Play5TPro", "优畅享50PIus", "Hi nova 9z", "OPPO A55S 4G", "Wiko T50"]}]}, {"code": "GX19", "name": "小熊系列", "type": "高清膜", "sub": "荣耀X30", "brands": [{"brand": "/荣耀X30/荣耀X40GT/荣耀X40GT竞速版/OPPO", "models": ["F23 5G", "OPPO F23 Pro"]}]}, {"code": "GX21", "name": "小熊系列", "type": "高清膜", "sub": "荣耀9A", "brands": [{"brand": "/畅享10E/畅享10s/畅享20E/荣耀20Lite/荣耀30i/荣耀Play4TPro", "models": []}]}, {"code": "GX22", "name": "小熊系列", "type": "高清膜", "sub": "荣耀X50", "brands": [{"brand": "华为", "models": ["荣耀X40i", "畅享50 Pro", "荣耀PLAY6T PRO", "荣耀X30i", "荣耀 X50"]}, {"brand": "OPPO", "models": ["一加10T", "一加 Ace Pro"]}, {"brand": "vivo", "models": ["X27 Pro", "Y17"]}, {"brand": "小米", "models": ["红米K50至尊版", "小米9Pro", "小米9X", "红米NOTE7S", "小米9Pro", "小米9Pro5G", "畅享9", "红米7红米Note7", "红米 Note 7 Pro", "红米Note7s", "红米Note 8", "华为Nova5", "华为Nova 5 Pro", "小米9", "Galaxy A40S", "IQ00青春", "小米10SE", "小米9", "小米CC9", "一加6T", "真我Q", "真我XT", "一加7", "真我5 Pro", "真我X Lite", "真我X2", "Galaxy A30", "iQ00 Pro", "OPPO A40S", "OPPO K1", "Galaxy A50", "iQ00", "iQ00 Neo", "OPPO A30", "OPPO A50", "OPPO K5OPPO R15X", "OPPO R17", "OPPO R19", "OPPO R17 Pro", "OPPO Reno Z", "VIVO U10", "VIVO V11 Pro", "VIVOX23", "VIVOY17", "VIVO Y3s", "VIVOU3X", "VIVO X21s", "vivoX23幻彩版", "VIVO Y19", "VIVOY3", "VIVO Y7Pro 2019", "VIVOY7S", "VIVOY9s", "VIVOZ5"]}]}, {"code": "GX23", "name": "小熊系列", "type": "高清膜", "sub": "荣耀9X", "brands": [{"brand": "华为", "models": ["畅享10PLUS", "荣耀9XPRO", "荣耀9X"]}]}, {"code": "GX24", "name": "小熊系列", "type": "高清膜", "sub": "RENO2", "brands": [{"brand": "Nova7SE//OPPO", "models": ["Reno 2", "OPPO Reno2F", "OPPO Reno2Z", "红米Note10S", "红米Note10T", "华为Nova7", "荣耀30", "Galaxy S20 FE", "三星A52(5G)", "三星A53(5G)", "一加8T", "一加9", "一加9R", "真我Q3", "真我Q3引", "真我X7Pro", "OPPO Reno Ace2", "OPPO Reno7 Pro"]}]}, {"code": "GX25", "name": "小熊系列", "type": "高清膜", "sub": "A96", "brands": [{"brand": "A96/A95/OPPO", "models": ["A9", "OPPO A9x", "红米9", "红米Note8Pro", "红米Note94G", "一加7T", "真我X2Pro", "中兴Blade V2020", "OPPO Reno Ace", "VIVO U3", "VIVO Y01", "VIVO Y5s", "VIVO Z5i"]}]}, {"code": "GX26", "name": "小熊系列", "type": "高清膜", "sub": "荣耀50SE", "brands": [{"brand": "小米", "models": ["红米NOTE11 SE", "红米Note 8 Pro", "红米NOTE9 4G"]}, {"brand": "vivo", "models": ["Z5i", "Y5s"]}, {"brand": "华为", "models": ["麦芒9", "Hi nova 9 SE", "荣耀50SE", "NOVA9SE", "畅享60Pro"]}, {"brand": "OPPO", "models": ["真我Q5", "OPPO A1 (2023)", "A98 5G"]}]}, {"code": "GX27", "name": "小熊系列", "type": "高清膜", "sub": "IQOO9", "brands": [{"brand": "vivo", "models": ["IQOO11", "IQOO10", "IQOO9", "IQOO 11S", "IQOO Neo5 SE", "IQOO Neo7", "IQooNeo7竞速", "IQooNeo7se", "IQooNeo8", "IQooNeo8Pro", "IQooZ5", "IQooZ8", "IQooZ8X", "IQooZ 小米 红米note9S", "红米NOTE12（5G）", "K11X"]}]}, {"code": "GX28", "name": "小熊系列", "type": "高清膜", "sub": "红米K50", "brands": [{"brand": "小米", "models": ["红米K60", "红米NOTE11TPro", "红米K50PRO", "红米K50", "红米K40S"]}, {"brand": "华为/荣耀", "models": ["荣耀80 GT"]}, {"brand": "OPPO", "models": ["真我GT NEO5", "一加 Ace 2V"]}]}, {"code": "GX29", "name": "小熊系列", "type": "高清膜", "sub": "VIVOY97", "brands": [{"brand": "真我", "models": ["Q", "真我 X Lite", "VIVO Y97", "红米8", "红米8A", "真我3", "真我2Pro", "真我3Pro", "OPPO A5S", "OPPO A7", "OPPO A7x", "OPPO F9", "VIVO U1", "VIVO V11", "VIVO ZBi", "VIVO V11i", "VIVO Y91", "VIVO Y91s", "VIVO Y93", "VIVO Y93i", "VIVO Y93s", "VIVO Y95", "VIVO Y95s", "VIVO Z3"]}]}, {"code": "GX30", "name": "小熊系列", "type": "高清膜", "sub": "S9E", "brands": [{"brand": "vivo", "models": ["S15E", "VIVO S10E", "vivo S9e", "v21"]}]}, {"code": "GX31", "name": "小熊系列", "type": "高清膜", "sub": "NOVA7", "brands": [{"brand": "华为", "models": ["荣耀30", "NOVA7"]}, {"brand": "华为", "models": ["荣耀 30 Lite", "畅享20 Pro", "畅享Z"]}]}, {"code": "GX32", "name": "小熊系列", "type": "高清膜", "sub": "畅享20PRO", "brands": [{"brand": "vivo", "models": ["T2", "Y33e", "Y3s"]}, {"brand": "小米", "models": ["红米8A"]}]}, {"code": "GX33", "name": "小熊系列", "type": "高清膜", "sub": "畅享10", "brands": [{"brand": "荣耀PLAY4T/畅享10/荣耀PLAY3/VIVO", "models": ["S5", "畅享10", "真我X50Pro", "真我X7Max", "1Q003", "VIVO X30", "VIVO X30 Pro", "VIVO s5"]}]}, {"code": "GX34", "name": "小熊系列", "type": "高清膜", "sub": "畅玩20PRO", "brands": [{"brand": "华为", "models": ["畅玩20PRO", "荣耀PLAY5", "NOVA8SE", "Nzone S7 Pro+"]}]}, {"code": "GX35", "name": "小熊系列", "type": "高清膜", "sub": "畅享20", "brands": [{"brand": "华为", "models": ["红米10A", "红米9C", "红米9A", "荣耀 Play 5T 活力版", "畅享20"]}, {"brand": "小米", "models": []}]}, {"code": "GX36", "name": "小熊系列", "type": "高清膜", "sub": "荣耀400Lite", "brands": [{"brand": "/麦芒40/荣耀90GT/荣耀Play8TPro/荣耀Play9TPro/荣耀X50i+/荣耀X60GT/荣耀X60i", "models": ["荣耀X60i 5G", "荣耀X70i", "Honor 200Lite", "Honor 400Lite", "Honor X8b", "OPPO A5 5G", "VIKO Hi畅享80Pro"]}]}, {"code": "GX37", "name": "小熊系列", "type": "高清膜", "sub": "Y7S", "brands": [{"brand": "vivo", "models": ["Y9S", "vivo z5", "Y7S", "iQOO Neo"]}, {"brand": "OPPO", "models": ["K10PRO", "真我GT 2PRO", "真我Q5PRO", "K40PRO", "OPPO K10X"]}]}, {"code": "GX38", "name": "小熊系列", "type": "高清膜", "sub": "红米K40", "brands": [{"brand": "小米", "models": ["K50至尊版", "红米K40", "K40PRO"]}, {"brand": "vivo", "models": ["vivos16e", "S15", "IQOO 7"]}, {"brand": "华为", "models": ["NOVA10 SE"]}]}, {"code": "GX39", "name": "小熊系列", "type": "高清膜", "sub": "红米NOTE9(5G)", "brands": [{"brand": "小米", "models": ["红米10X(4G)", "红米NOTE9(5G)"]}]}, {"code": "GX40", "name": "小熊系列", "type": "高清膜", "sub": "荣耀400", "brands": [{"brand": "荣耀400/荣耀400pro", "models": []}]}, {"code": "GX41", "name": "小熊系列", "type": "高清膜", "sub": "红米k30/K30PRO", "brands": [{"brand": "/红米K30/红米K30Pr0/红米K30(5G)/红米K30i/红米K30S/红米K30S至尊版/Hi畅享70Pro5G/畅享20SE", "models": ["畅享50Pr0", "畅享70Pro", "黑鲨4", "黑鲨4PrO", "黑鲨4sPro", "黑鲨5", "黑鲨5Pro", "黑鲨5RS", "红米K40", "红米K40Pro", "红米Note10Pro", "红米Note11Pro", "红米Note11Pro+", "红米Note11EPro", "红米Note9Pro", "红米Note9S", "红魔5Pro", "红魔6R", "荣耀Play6TPro", "荣耀Play7TPro", "荣耀X40i", "荣耀X501", "三星C55(5G)", "小米10TPr05G", "小米11i", "一加Ace2V", "一加Ace Pro", "真我10Pro", "真我GT2Pro", "真我GT5", "中兴Axon30Pr05G", "中兴S30", "中兴S30Pro", "中兴天机A315G", "中兴天机A31Pro5G", "中兴远航20Pro", "中兴远航40Pr0+", "中兴远航41Pr0+", "中兴远航40Pr0+星空版", "中兴V70", "IQOO Neo 5", "IQOO Neo5 SE", "IQOO Z5", "IQOO Z6", "IQOOZ7", "IQOO Z7x", "IQOO Z8", "IQOO Z8x", "OPPO A3i", "OPPO A71", "OPPO K13s", "VIVO T1", "VIVO X27 Pro", "VIVO Y100i", "VIVO Y300 5G", "VIVO Y77", "VIVO Y78", "VIVO Y78m 5G", "VIVO Y78T", "VIVO T2"]}]}, {"code": "GX42", "name": "小熊系列", "type": "高清膜", "sub": "NOVA5i", "brands": [{"brand": "华为", "models": ["NOVA6SE", "NOVA5i", "NOVA7i"]}]}, {"code": "GX43", "name": "小熊系列", "type": "高清膜", "sub": "NOVA5iPRO", "brands": [{"brand": "华为", "models": ["NOVA5Z", "NOVA5iPRO", "Nova 5Z", "荣耀20", "荣耀20Pro", "荣耀20s", "Mate30lite", "Nova 5T"]}]}, {"code": "GX44", "name": "小熊系列", "type": "高清膜", "sub": "荣耀10青春", "brands": [{"brand": "华为", "models": ["荣耀10i", "麦芒8", "荣耀20i", "荣耀 10 Lite", "畅享9S", "荣耀10青春", "荣耀10i", "荣耀20Se"]}]}, {"code": "GX45", "name": "小熊系列", "type": "高清膜", "sub": "NOVA4", "brands": [{"brand": "/荣耀V20/红米K20/红米K20Pr0/华为Nova4/荣耀Magic2/三星Galaxy", "models": ["A60", "三星Galaxy S21FE", "三星Galaxy Sa23FE", "小米9T", "小米9TPro", "小米MX3", "OPPO Reno【6.4】", "VIVO NEX2前", "VIVO S1 Pro", "VIVO X27"]}]}, {"code": "GX46", "name": "小熊系列", "type": "高清膜", "sub": "荣耀8X", "brands": [{"brand": "畅享7plas", "models": []}]}, {"code": "GX47", "name": "小熊系列", "type": "高清膜", "sub": "华为p30", "brands": [{"brand": "华为p30", "models": []}]}, {"code": "GX48", "name": "小熊系列", "type": "高清膜", "sub": "小米13/小米14", "brands": [{"brand": "小米13/小米14", "models": []}]}, {"code": "GX49", "name": "小熊系列", "type": "高清膜", "sub": "NOVA11", "brands": [{"brand": "/华为Nova11//Hi", "models": ["nova 11华为Nova12", "华为Nova12活力板", "华为Nova12Lite", "华为Nova12s", "华为NoVa13", "华为Nova14\n华为Nova14Lite", "华为Nova15", "荣耀90GT", "荣耀畅玩60", "荣耀畅玩60m", "荣耀Play10C", "荣耀X60GT", "荣耀X6c", "OPPO A5 2025"]}]}, {"code": "GX50", "name": "小熊系列", "type": "高清膜", "sub": "P40", "brands": [{"brand": "华为", "models": ["P40"]}]}, {"code": "GX51", "name": "小熊系列", "type": "高清膜", "sub": "P50E/P50", "brands": [{"brand": "华为", "models": ["P50E", "P50"]}]}, {"code": "GX52", "name": "小熊系列", "type": "高清膜", "sub": "MATE20", "brands": [{"brand": "华为", "models": ["MATE20"]}]}, {"code": "GX53", "name": "小熊系列", "type": "高清膜", "sub": "MATE30", "brands": [{"brand": "华为", "models": ["MATE30"]}]}, {"code": "GX54", "name": "小熊系列", "type": "高清膜", "sub": "VIVO X100s", "brands": [{"brand": "VIVO", "models": ["X100s", "畅享60Pro", "畅享90", "畅享90Plus", "畅享80", "红米Note12", "红米Note12 5G", "红米Note12RPro", "畅享90 M Plus", "华为Nova9SE", "麦芒20", "荣耀50SE", "远航30Pro", "真我12", "真我12X", "真我13", "真我V50", "真我V50s", "真我V60", "真我V60s", "真我V70", "真我155G", "中兴S30SE全网通5G", "中兴远航30Pro", "Hi畅享80Plus", "Hi Nova 9 SE", "1Q0010", "1Q0011", "1Q0011S", "1Q009", "IQ0O Neo 8", "IQ0O Neo7", "IQOO Neo7竞速版", "IQOO Neo7 SE", "I000 Neo8 Pro", "IOOO Neo9", "iQOO Neo9 Pro", "iQOO Neo9S Pro", "iQOO Z10 Turbo", "iQOO Z10 Turbo Pro", "iQOO Z10x", "iQOO Z9 5G", "iQOO Z9 Turbo+", "iQOO Z9x 5G", "NOVA10青春", "nubia Neo 2 5G", "OPPO A3活力版", "OPPO A1 5G", "OPPO A1s 5G", "OPPO A2 5G", "A3x", "OPPO A52025海外", "OPPO A5活力版", "OPPO A5x", "OPPO A5x 5G", "OPPO A6i 5G", "OPPO A98 5G", "OPPO K11x", "OPPO K13s 5G", "OPPO K13x", "VIVO S19", "VIVO Y200 GT", "VIVO S19", "VIVO Y200 GT", "VIVO Y200i", "VIVO Y200t", "VIVO Y300i", "VIVO Y300t", "VIVO Y37 Pro", "Wiko 5G"]}]}, {"code": "GX55", "name": "小熊系列", "type": "高清膜", "sub": "OPPO Reno16", "brands": [{"brand": "一加13T/OPPO", "models": ["Find X8S", "VIVO S30 Pro mini", "VIVO X200 Pro mini"]}]}, {"code": "GX56", "name": "小熊系列", "type": "高清膜", "sub": "", "brands": [{"brand": "小米17T/红米K90/红米K90Pro/红米Turbo5/荣耀Play11Plus/荣耀X80i", "models": []}]}, {"code": "GX57", "name": "小熊系列", "type": "高清膜", "sub": "", "brands": [{"brand": "VIVO", "models": ["S18", "VIVO S18 Pro", "一加8Pro", "IQOO 10 Pro", "IQOO 11 Pro", "IQOO 12 Pro", "IQOO 8 Pro", "IQOO 9 Pro", "OPPO Find X2", "VIVO Y78+", "OPPO Find X2 Pro", "VIVO S19 Pro", "VIVO S17", "VIVO S17 Pro", "VIVO S17t", "VIVO X70 Pro+", "VIVO X80", "VIVO X80 Pro", "VIVO Y200"]}]}, {"code": "GX58", "name": "小熊系列", "type": "高清膜", "sub": "华为Mate40", "brands": [{"brand": "华为Mate40/华为Mate40E/华为P30Pro/小米CC9Pro/小米Civi/小米Ciwi1S/OPPO", "models": ["Find X", "TDTechM40"]}]}, {"code": "GX59", "name": "小熊系列", "type": "高清膜", "sub": "华为Mate40Pro", "brands": [{"brand": "华为Mate40Pro+/华为Mate40RS/华为Mate40EPro/荣耀Magic3/荣耀Magic3至臻版/荣耀Magic3Pro", "models": []}]}, {"code": "GX60", "name": "小熊系列", "type": "高清膜", "sub": "华为Mate50\n 华为Mate60", "brands": [{"brand": "华为Mate50/华为Mate50E/华为Mate60/荣耀80GT/荣耀80Pro直面/红米K50电竞版/红米Note12Pro/红米Note12Pro极速版/红米Note12Pro+/—加Ace3V", "models": []}]}, {"code": "GX61", "name": "小熊系列", "type": "高清膜", "sub": "华为mate60pro", "brands": [{"brand": "华为Mate60Pro+/华为Mate60RS/华为Nova8Pro/华为NoVa9Pro/荣耀50Pro/荣耀V40/荣耀V40Pro/Hi", "models": ["Nova 9 Pro"]}]}, {"code": "GX63", "name": "小熊系列", "type": "高清膜", "sub": "华为Mate 70 pro", "brands": [{"brand": "华为Mate70Pro/华为Mate70PRO+/华为Mate70RS", "models": []}]}, {"code": "GX64", "name": "小熊系列", "type": "高清膜", "sub": "华为Nova13\n", "brands": [{"brand": "华为Nova11/华为Nova12/华为NoVa12活力版/", "models": ["华为Nova14", "华为Nova14活力版", "华为Nova15", "华为Nova16z", "Hi Nova 11", "OPPO A5 2025", "OPPO A6 Plus"]}]}, {"code": "GX65", "name": "小熊系列", "type": "高清膜", "sub": "", "brands": [{"brand": "红米Note13", "models": ["5G", "红米Note13Pro", "红米Note13RPro", "畅享20Plus", "红米K40游戏增强版", "红米K40S", "红米K50", "红米K50至尊版", "红米K50Pro", "红米K50 Ultra", "红米K60", "红米K60至尊版", "红米K60E", "红米K60Pro", "红米K70", "红米K70Pro", "红米K70E", "红米Note11(5G)", "红米Note12 Turbo", "红米Note145G", "红米Turbo3", "华为Nova10Se", "华为Nova11SE", "荣耀300", "荣耀GT", "荣耀Play5活力版", "荣耀X10", "荣耀X20", "荣耀X30i", "一加Ace", "优畅享20Plus", "真我13Pro", "真我9SE", "真我GT Neo2", "真我GT Neo3", "真我GT Neo5", "真我GT Neo3T", "真我GT Neo5SE", "真我GT2", "真我GT2大师探索版", "Hi畅享60Pro", "Hi Nova 12 se", "iQ007", "IQOO Neo 5S", "IQOO Neo 6", "IQOO Neo6 SE", "Nzone 50 Pro", "OPPO A3 5G", "OPPO A36 4G", "OPPO A6 5G", "OPPO A76", "OPPO K10 Pro", "OPPO K11", "OPPO K12", "OPPO K12 Plus", "OPPO K12s", "OPPO K12x", "OPPO K9S", "OPPO Reno 8 Pro", "OPPO Reno 8 Pro+", "VIVO S15", "VIVO S16e", "VIVO S18e", "VIVO Y100t", "VIVO Y77t"]}]}, {"code": "GX66", "name": "小熊系列", "type": "高清膜", "sub": "畅玩70Plus", "brands": [{"brand": "畅玩70Plus/畅玩50Plus/畅玩60Plus/畅玩80Pro/红米12", "models": ["5G", "红米12", "红米13 4G", "红米13 5g", "红米13X", "红米Note12R", "红米Note13R", "荣耀200 smart", "荣耀Play10T", "荣耀Play8T", "荣耀Play9T", "荣耀X7b"]}]}, {"code": "GX67", "name": "小熊系列", "type": "高清膜", "sub": "畅玩30Plus", "brands": [{"brand": "/畅玩30Plus/畅玩10A/畅玩40PuS/畅玩60A/畅玩80/畅享30PIuS/畅享50/畅享60/畅享70/畅享70s/畅享70z", "models": ["红米12C", "红米13C", "红米13r", "红米A3", "华为Nova Y70", "华为Nova Y72", "麦芒11", "荣耀 Play 5T", "荣耀Play6T", "耀Play7T", "Hi畅享60", "Hi畅享60s", "Hi畅享70m", "Hi畅享70Plus", "VIVO Y50", "VIVO Y50 5G", "VIVO Y50e", "VIVO Y60", "WIKO 10"]}]}, {"code": "GX80", "name": "小熊系列", "type": "高清膜", "sub": "i 7G/X8G", "brands": [{"brand": "苹果", "models": ["iphone 7G黑白", "8G黑白"]}]}, {"code": "GX81", "name": "小熊系列", "type": "高清膜", "sub": "i 7p/X8p", "brands": [{"brand": "苹果", "models": ["iphone 7p黑白", "8p黑白"]}]}, {"code": "GX82", "name": "小熊系列", "type": "高清膜", "sub": "ip X", "brands": [{"brand": "苹果", "models": ["iphone X", "XS", "11Pro"]}]}, {"code": "GX83", "name": "小熊系列", "type": "高清膜", "sub": "iXSMax", "brands": [{"brand": "苹果", "models": ["iPhone XSMax", "iPhone 11proMax"]}]}, {"code": "GX84", "name": "小熊系列", "type": "高清膜", "sub": "i11/XR", "brands": [{"brand": "苹果", "models": ["iPhone 11", "iPhone XR"]}]}, {"code": "GX85", "name": "小熊系列", "type": "高清膜", "sub": "i12ProMax", "brands": [{"brand": "苹果", "models": ["iPhone 12 Pro Max"]}]}, {"code": "GX86", "name": "小熊系列", "type": "高清膜", "sub": "i12", "brands": [{"brand": "苹果", "models": ["iPhone 12", "iPhone 12 Pro"]}]}, {"code": "GX87", "name": "小熊系列", "type": "高清膜", "sub": "i13", "brands": [{"brand": "苹果", "models": ["iPhone 13", "iPhone 13 Pro", "iPhone 14", "iPhone 16e", "iPhone 17e"]}]}, {"code": "GX88", "name": "小熊系列", "type": "高清膜", "sub": "i13ProMax", "brands": [{"brand": "苹果", "models": ["iPhone 14 Plus", "iPhone 13 Pro Max"]}]}, {"code": "GX89", "name": "小熊系列", "type": "高清膜", "sub": "i14Pro", "brands": [{"brand": "苹果", "models": ["iPhone 14 Pro"]}]}, {"code": "GX90", "name": "小熊系列", "type": "高清膜", "sub": "i14ProMax", "brands": [{"brand": "苹果", "models": ["iPhone 14 Pro Max"]}]}, {"code": "GX91", "name": "小熊系列", "type": "高清膜", "sub": "iPhone 15", "brands": [{"brand": "苹果", "models": ["iPhone 15", "iPhone 16"]}]}, {"code": "GX92", "name": "小熊系列", "type": "高清膜", "sub": "iPhone15Plus", "brands": [{"brand": "苹果", "models": ["iPhone 15 Plus", "iPhone 16 Plus"]}]}, {"code": "GX93", "name": "小熊系列", "type": "高清膜", "sub": "iPhone15Pro", "brands": [{"brand": "苹果", "models": ["iPhone 15 Pro"]}]}, {"code": "GX94", "name": "小熊系列", "type": "高清膜", "sub": "iPhone15ProMax", "brands": [{"brand": "苹果", "models": ["iPhone15 Pro Max"]}]}, {"code": "GX95", "name": "小熊系列", "type": "高清膜", "sub": "iPhone16Pro", "brands": [{"brand": "苹果", "models": ["iPhone 17", "iPhone16Pro"]}]}, {"code": "GX96", "name": "小熊系列", "type": "高清膜", "sub": "iPhone16ProMax", "brands": [{"brand": "苹果", "models": ["iPhone16ProMax"]}]}, {"code": "GX97", "name": "小熊系列", "type": "高清膜", "sub": "iPhone17Pro", "brands": [{"brand": "苹果", "models": ["iPhone17Pro"]}]}, {"code": "GX98", "name": "小熊系列", "type": "高清膜", "sub": "iPhone17ProMax", "brands": [{"brand": "华为NoVa15Pro/华为Nova15", "models": ["Ultra", "华为NoVa16Pro", "华为Nova16 Ultra", "华为P90", "华为Pura90", "小米17 Pro Max", "畅享90 Pro Max", "红米K90 Pro Max", "小米17Utra", "小米17"]}]}];
+const TOTAL = 84;
+const IOS_MAP = {"iPhone10,1": "iPhone 8", "iPhone10,2": "iPhone 8 Plus", "iPhone10,3": "iPhone X", "iPhone10,4": "iPhone 8", "iPhone10,5": "iPhone 8 Plus", "iPhone10,6": "iPhone X", "iPhone11,2": "iPhone XS", "iPhone11,4": "iPhone XS Max", "iPhone11,6": "iPhone XR", "iPhone11,8": "iPhone XR", "iPhone12,1": "iPhone 11", "iPhone12,3": "iPhone 11 Pro", "iPhone12,5": "iPhone 11 Pro Max", "iPhone12,8": "iPhone SE 2", "iPhone13,1": "iPhone 12 mini", "iPhone13,2": "iPhone 12", "iPhone13,3": "iPhone 12 Pro", "iPhone13,4": "iPhone 12 Pro Max", "iPhone14,2": "iPhone 13 Pro", "iPhone14,3": "iPhone 13 Pro Max", "iPhone14,4": "iPhone 13 mini", "iPhone14,5": "iPhone 13", "iPhone14,6": "iPhone SE 3", "iPhone14,7": "iPhone 14", "iPhone14,8": "iPhone 14 Plus", "iPhone15,2": "iPhone 14 Pro", "iPhone15,3": "iPhone 14 Pro Max", "iPhone15,4": "iPhone 15", "iPhone15,5": "iPhone 15 Plus", "iPhone16,1": "iPhone 15 Pro", "iPhone16,2": "iPhone 15 Pro Max", "iPhone17,1": "iPhone 16 Pro", "iPhone17,2": "iPhone 16 Pro Max", "iPhone17,3": "iPhone 16", "iPhone17,4": "iPhone 16 Plus"};
+
+function detectDevice() {
+  const ua = navigator.userAgent;
+  let brand = '', model = '';
+  // iOS 精确识别
+  const iosMatch = ua.match(/iPhone\d+,\d+/);
+  if (iosMatch && IOS_MAP[iosMatch[0]]) {
+    return { brand: 'iPhone', model: IOS_MAP[iosMatch[0]], raw: iosMatch[0] };
+  }
+  if (/iPhone/i.test(ua)) return { brand: 'iPhone', model: '', raw: 'iPhone' };
+  if (/iPad/i.test(ua)) return { brand: 'iPad', model: '', raw: 'iPad' };
+  // Android
+  if (/Huawei|HONOR/i.test(ua)) brand = '华为';
+  else if (/Xiaomi|MI\s/i.test(ua)) brand = '小米';
+  else if (/Redmi/i.test(ua)) brand = '红米';
+  else if (/OPPO/i.test(ua)) brand = 'OPPO';
+  else if (/vivo/i.test(ua)) brand = 'vivo';
+  else if (/OnePlus/i.test(ua)) brand = '一加';
+  else if (/realme/i.test(ua)) brand = '真我';
+  else if (/Samsung/i.test(ua)) brand = '三星';
+  else if (/Meizu/i.test(ua)) brand = '魅族';
+  // 从 UA 尝试提取型号
+  const m = ua.match(/Build\/([A-Z0-9\-]+)/);
+  if (m) model = m[1];
+  return { brand, model, raw: ua };
+}
+
+function escapeHTML(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function highlight(text, q) {
+  if (!q) return escapeHTML(text);
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx < 0) return escapeHTML(text);
+  return escapeHTML(text.slice(0, idx)) + '<mark>' + escapeHTML(text.slice(idx, idx+q.length)) + '</mark>' + escapeHTML(text.slice(idx+q.length));
+}
+
+function matchEntry(entry, q) {
+  if (!q) return { hit: true, where: '' };
+  const ql = q.toLowerCase();
+  if (entry.code.toLowerCase().includes(ql)) return { hit: true, where: 'code:' + entry.code };
+  if ((entry.sub||'').toLowerCase().includes(ql)) return { hit: true, where: 'sub:' + entry.sub };
+  for (const b of entry.brands) {
+    if (b.brand.toLowerCase().includes(ql)) return { hit: true, where: 'brand:' + b.brand };
+    for (const m of b.models) {
+      if (m.toLowerCase().includes(ql)) return { hit: true, where: 'model:' + m, brand: b.brand };
+    }
+  }
+  return { hit: false };
+}
+
+function renderList(entries, q) {
+  const list = document.getElementById('list');
+  const count = document.getElementById('count');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>没找到匹配的型号<br>试试其他关键字</div>';
+    count.textContent = '';
+    return;
+  }
+  count.textContent = `找到 ${entries.length} 款` + (q ? ` · 关键字「${q}」` : '');
+  list.innerHTML = entries.map(e => {
+    const preview = e.brands.slice(0, 3).map(b => {
+      const m = b.models.slice(0, 4).map(x => highlight(x, q)).join(' / ');
+      return `<span class="brand-tag ${q && b.brand.toLowerCase().includes(q.toLowerCase()) ? 'match' : ''}">${highlight(b.brand, q)}：${m}${b.models.length>4?' …':''}</span>`;
+    }).join('');
+    return `<div class="card" data-code="${e.code}">
+      <div class="card-head">
+        <span class="code">${highlight(e.code, q)}</span>
+        <span class="sub">${highlight(e.sub, q)}</span>
+        <span class="type">${escapeHTML(e.type)}</span>
+      </div>
+      <div class="card-brands">${preview}</div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('click', () => openDetail(c.dataset.code));
+  });
+}
+
+function openDetail(code) {
+  const entry = FILMS.find(e => e.code === code);
+  if (!entry) return;
+  const list = document.getElementById('list');
+  list.innerHTML = `<div class="detail" style="position:relative">
+    <button class="close-detail" onclick="renderList(FILMS, document.getElementById('q').value); document.getElementById('count').textContent='找到 '+FILMS.length+' 款';">×</button>
+    <h2>${escapeHTML(entry.sub || '钢化膜')}</h2>
+    <div class="code-big">${escapeHTML(entry.code)}</div>
+    <div class="info">${escapeHTML(entry.name)} · ${escapeHTML(entry.type)}</div>
+    ${entry.brands.map(b => `<div class="brand-group">
+      <div class="brand-name">${escapeHTML(b.brand)} · ${b.models.length} 款</div>
+      <div class="model-chips">${b.models.map(m => `<span class="model-chip">${escapeHTML(m)}</span>`).join('')}</div>
+    </div>`).join('')}
+  </div>`;
+  list.scrollIntoView({behavior:'smooth'});
+}
+
+function setupQuickPick(brand) {
+  const brands = ['iPhone','华为','小米','红米','OPPO','vivo','一加','真我','三星','魅族'];
+  document.getElementById('quickPick').innerHTML = brands.map(b =>
+    `<button data-b="${b}" style="${b===brand?'background:#3a7bd5;color:#fff;border-color:#3a7bd5':''}">${b}</button>`
+  ).join('');
+  document.querySelectorAll('#quickPick button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('q').value = btn.dataset.b;
+      document.getElementById('q').dispatchEvent(new Event('input'));
+    });
+  });
+}
+
+function init() {
+  const det = detectDevice();
+  const detectEl = document.getElementById('detect');
+  if (det.model) {
+    detectEl.innerHTML = `检测到您的设备：<b>${escapeHTML(det.model)}</b> · 已自动填入搜索`;
+    document.getElementById('q').value = det.model;
+  } else if (det.brand) {
+    detectEl.innerHTML = `检测到品牌：<b>${escapeHTML(det.brand)}</b> · 点击下方按钮或输入完整型号`;
+  } else {
+    detectEl.innerHTML = '请直接输入您手机的品牌或型号';
+  }
+  setupQuickPick(det.brand);
+  const q = document.getElementById('q').value.trim();
+  const filtered = FILMS.filter(e => matchEntry(e, q).hit);
+  renderList(filtered, q);
+
+  let timer;
+  document.getElementById('q').addEventListener('input', e => {
+    clearTimeout(timer);
+    const v = e.target.value.trim();
+    timer = setTimeout(() => {
+      const f = FILMS.filter(en => matchEntry(en, v).hit);
+      renderList(f, v);
+    }, 80);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
